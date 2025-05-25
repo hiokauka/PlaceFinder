@@ -1,0 +1,80 @@
+﻿@page
+@model PlaceFinderModel
+@{
+    ViewData["Title"] = "Place Finder";
+}
+
+<h1>Search Places</h1>
+<input type="text" id="searchInput" placeholder="e.g. park in Melaka" />
+<button onclick="searchPlaces()">Search</button>
+
+<div id="results"></div>
+
+@section Scripts {
+    <script>
+        async function searchPlaces() {
+            const query = document.getElementById('searchInput').value;
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '';
+
+            try {
+                // Call your backend API endpoint
+                const res = await fetch(`https://localhost:7277/Places/Search?query=${encodeURIComponent(query)}`);
+
+                if (!res.ok) {
+                    resultsDiv.innerHTML = `<p>Error fetching places: ${res.status}</p>`;
+                    console.error('Fetch error:', res.statusText);
+                    return;
+                }
+
+                const data = await res.json();
+
+                if (!data.places || !Array.isArray(data.places) || data.places.length === 0) {
+                    resultsDiv.innerHTML = '<p>No results found.</p>';
+                    return;
+                }
+
+                data.places.forEach(place => {
+                    const card = document.createElement('div');
+                    card.className = 'card';
+
+                    const photoUrl = (place.photo || 'https://via.placeholder.com/150') + `&cb=${Date.now()}`;
+
+                    console.log(`Place: ${place.name}, Photo URL: ${photoUrl}`);
+
+                    card.innerHTML = `
+                        <img src="${photoUrl}" alt="Place photo" />
+                        <div>
+                            <h2>${place.name}</h2>
+                            <p><strong>Address:</strong> ${place.address || 'N/A'}</p>
+                            <p><strong>Rating:</strong> ⭐ ${place.rating || 'No rating'}</p>
+                            <p><strong>Types:</strong> ${place.types ? place.types.join(', ') : 'N/A'}</p>
+                        </div>
+                    `;
+                    resultsDiv.appendChild(card);
+                });
+            } catch (error) {
+                resultsDiv.innerHTML = `<p>Error fetching data</p>`;
+                console.error('Fetch failed:', error);
+            }
+        }
+    </script>
+}
+
+<style>
+    .card {
+        border: 1px solid #ccc;
+        border-radius: 10px;
+        padding: 1rem;
+        margin: 1rem 0;
+        display: flex;
+        gap: 1rem;
+    }
+
+        .card img {
+            width: 150px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+</style>
