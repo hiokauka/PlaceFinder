@@ -363,4 +363,4 @@ MigrationBackup/
 FodyWeavers.xsd
 
 #ignore coz got my api key duhhh
-appsettings.Development.json
+appsettings.json
